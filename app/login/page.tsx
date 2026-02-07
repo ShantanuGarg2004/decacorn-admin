@@ -28,35 +28,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-white shadow-lg border border-gray-200 rounded-2xl p-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white shadow-lg border border-gray-200 rounded-2xl p-6 sm:p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold text-gray-900">
             Decacorn Admin
           </h1>
           <p className="text-sm text-gray-500 mt-2">
-            Internal dashboard access
+            Secure dashboard access
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              Email
+            </label>
             <input
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black transition"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black transition"
             />
           </div>
 
           <div>
-            <label className="text-sm text-gray-600">Password</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              Password
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black transition"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black transition"
             />
           </div>
 
@@ -70,7 +74,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-6 text-xs text-gray-400 text-center">
-          Decacorn Labs • Confidential Access
+          Decacorn Labs • Confidential
         </div>
       </div>
     </div>
