@@ -2,67 +2,116 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-
-type Lead = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  service: string;
-  created_at: string;
-};
+import LeadsTable from "@/components/LeadsTable";
+import SearchBar from "@/components/SearchBar";
+import StatsCard from "@/components/StatsCard";
+import ExportButtons from "@/components/ExportButtons";
+import { Lead } from "@/types/leads";
 
 export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (data) setLeads(data);
-      });
+    fetchLeads();
   }, []);
 
+  const fetchLeads = async () => {
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching leads:", error);
+      setLeads([]);
+      setFilteredLeads([]);
+    } else {
+      const safeData: Lead[] = (data ?? []) as Lead[];
+      setLeads(safeData);
+      setFilteredLeads(safeData);
+    }
+
+    setLoading(false);
+  };
+
+  const handleSearch = (query: string) => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      setFilteredLeads(leads);
+      return;
+    }
+
+    const filtered = leads.filter((lead) => {
+      const searchableContent = [
+        lead.name,
+        lead.email,
+        lead.phone ?? "",
+        lead.company,
+        lead.service,
+        lead.description ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableContent.includes(normalizedQuery);
+    });
+
+    setFilteredLeads(filtered);
+  };
+
+  // Stats calculations
+  const now = new Date();
+
+  const totalLeads = leads.length;
+
+  const monthLeads = leads.filter((lead) => {
+    const date = new Date(lead.created_at);
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
+  }).length;
+
+  const weekLeads = leads.filter((lead) => {
+    const date = new Date(lead.created_at);
+
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    return date >= startOfWeek;
+  }).length;
+
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <h1 className="text-2xl font-semibold mb-6">
-        Decacorn – Incoming Requests
+    <div className="min-h-screen bg-gray-50 text-gray-800 p-10">
+      <h1 className="text-3xl font-semibold tracking-tight mb-10">
+        Decacorn Admin Dashboard
       </h1>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border border-white/10 rounded-xl overflow-hidden">
-          <thead className="bg-white/5 text-sm text-white/70">
-            <tr>
-              <th className="p-4 text-left">Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Company</th>
-              <th>Service</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leads.map((lead) => (
-              <tr
-                key={lead.id}
-                className="border-t border-white/10 text-sm"
-              >
-                <td className="p-4">{lead.name}</td>
-                <td>{lead.email}</td>
-                <td>{lead.phone}</td>
-                <td>{lead.company}</td>
-                <td>{lead.service}</td>
-                <td>
-                  {new Date(lead.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <div className="text-gray-500">Loading leads...</div>
+      ) : (
+        <>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <StatsCard title="Total Leads" value={totalLeads} />
+            <StatsCard title="This Month" value={monthLeads} />
+            <StatsCard title="This Week" value={weekLeads} />
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <SearchBar onSearch={handleSearch} />
+            <ExportButtons data={filteredLeads} />
+          </div>
+
+          {/* Leads Table */}
+          <LeadsTable leads={filteredLeads} />
+        </>
+      )}
     </div>
   );
 }
