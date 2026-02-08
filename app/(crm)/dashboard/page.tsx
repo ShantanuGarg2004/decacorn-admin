@@ -24,19 +24,22 @@ export default function DashboardPage() {
     fetchLeads();
   }, []);
 
-  const fetchLeads = async () => {
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+const fetchLeads = async () => {
+  setLoading(true);
 
-    if (!error && data) {
-      setLeads(data);
-      setFilteredLeads(data);
-    }
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("archived", false) // ✅ FIX: exclude archived
+    .order("created_at", { ascending: false });
 
-    setLoading(false);
-  };
+  if (!error && data) {
+    setLeads(data);
+    setFilteredLeads(data);
+  }
+
+  setLoading(false);
+};
 
   const handleSearch = (query: string) => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -107,12 +110,12 @@ export default function DashboardPage() {
           Decacorn Admin Dashboard
         </h1>
 
-        <button
+        {/* <button
           onClick={handleLogout}
           className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition"
         >
           Logout
-        </button>
+        </button> */}
       </div>
 
       {loading ? (
