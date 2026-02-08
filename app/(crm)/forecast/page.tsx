@@ -11,37 +11,27 @@ interface Lead {
   owner_id: string | null;
 }
 
-interface User {
-  id: string;
-  name: string;
-}
-
 export default function ForecastPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const { data: leadData, error: leadError } =
-      await supabase
-        .from("leads")
-        .select("*")
-        .eq("archived", false); // ✅ Correct
+    setLoading(true);
 
-    const { data: userData } = await supabase
-      .from("users")
-      .select("*");
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("archived", false); // ✅ Important
 
-    if (!leadError && leadData) {
-      setLeads(leadData as Lead[]);
+    if (!error && data) {
+      setLeads(data as Lead[]);
     }
 
-    if (userData) {
-      setUsers(userData as User[]);
-    }
+    setLoading(false);
   };
 
   const weightedValue = (lead: Lead) => {
@@ -77,25 +67,29 @@ export default function ForecastPage() {
       : Math.round((totalWon / totalClosed) * 100);
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#f5f7fa] p-8">
-      <h1 className="text-2xl font-semibold mb-8">
+    <div className="min-h-[calc(100vh-80px)] bg-[#f5f7fa] p-4 md:p-8">
+      <h1 className="text-xl md:text-2xl font-semibold mb-6 md:mb-8">
         Revenue Forecast
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard
-          title="Weighted Pipeline"
-          value={`₹ ${weightedPipeline.toLocaleString()}`}
-        />
-        <MetricCard
-          title="Closed Revenue"
-          value={`₹ ${closedRevenue.toLocaleString()}`}
-        />
-        <MetricCard
-          title="Win Rate"
-          value={`${winRate}%`}
-        />
-      </div>
+      {loading ? (
+        <div>Loading forecast...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <MetricCard
+            title="Weighted Pipeline"
+            value={`₹ ${weightedPipeline.toLocaleString()}`}
+          />
+          <MetricCard
+            title="Closed Revenue"
+            value={`₹ ${closedRevenue.toLocaleString()}`}
+          />
+          <MetricCard
+            title="Win Rate"
+            value={`${winRate}%`}
+          />
+        </div>
+      )}
     </div>
   );
 }

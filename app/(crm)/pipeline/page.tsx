@@ -6,6 +6,8 @@ import {
   DndContext,
   closestCorners,
   DragEndEvent,
+  useDraggable,
+  useDroppable,
 } from "@dnd-kit/core";
 
 const STATUSES = [
@@ -100,51 +102,95 @@ export default function PipelinePage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#f5f7fa] p-6">
+    <div className="min-h-[calc(100vh-80px)] bg-[#f5f7fa]">
       <DndContext
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-7 gap-6 h-full">
+        {/* Desktop View - Vertical Columns */}
+        <div className="hidden md:grid md:grid-cols-7 gap-6 p-6 h-full">
           {STATUSES.map((status) => (
-            <div
+            <DroppableColumn
               key={status}
-              id={status}
-              className="flex flex-col bg-white rounded-2xl shadow-sm"
-            >
-              {/* Header */}
-              <div className="px-4 py-4 border-b bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
-                <div className="font-semibold text-sm text-gray-800">
-                  {status}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  ₹ {getColumnTotal(status).toLocaleString()}
-                </div>
-              </div>
-
-              {/* Cards */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {leads
-                  .filter((l) => l.status === status)
-                  .map((lead) => (
-                    <DraggableCard
-                      key={lead.id}
-                      lead={lead}
-                      weightedValue={getWeightedValue(
-                        lead
-                      )}
-                    />
-                  ))}
-              </div>
-            </div>
+              status={status}
+              leads={leads}
+              getWeightedValue={getWeightedValue}
+              getColumnTotal={getColumnTotal}
+            />
           ))}
+        </div>
+
+        {/* Mobile View - Horizontal Scroll */}
+        <div className="md:hidden">
+          <div className="overflow-x-auto overflow-y-hidden h-[calc(100vh-80px)] px-4 py-6">
+            <div className="flex gap-4 h-full" style={{ width: `${STATUSES.length * 280}px` }}>
+              {STATUSES.map((status) => (
+                <DroppableColumn
+                  key={status}
+                  status={status}
+                  leads={leads}
+                  getWeightedValue={getWeightedValue}
+                  getColumnTotal={getColumnTotal}
+                  mobile
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </DndContext>
     </div>
   );
 }
 
-import { useDraggable } from "@dnd-kit/core";
+function DroppableColumn({
+  status,
+  leads,
+  getWeightedValue,
+  getColumnTotal,
+  mobile = false,
+}: {
+  status: string;
+  leads: Lead[];
+  getWeightedValue: (lead: Lead) => number;
+  getColumnTotal: (status: string) => number;
+  mobile?: boolean;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: status,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col bg-white rounded-2xl shadow-sm ${
+        mobile ? "w-[260px] flex-shrink-0 h-full" : ""
+      }`}
+    >
+      {/* Header */}
+      <div className="px-4 py-4 border-b bg-gradient-to-r from-gray-50 to-white rounded-t-2xl">
+        <div className="font-semibold text-sm text-gray-800">
+          {status}
+        </div>
+        <div className="text-xs text-gray-500 mt-1">
+          ₹ {getColumnTotal(status).toLocaleString()}
+        </div>
+      </div>
+
+      {/* Cards */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {leads
+          .filter((l) => l.status === status)
+          .map((lead) => (
+            <DraggableCard
+              key={lead.id}
+              lead={lead}
+              weightedValue={getWeightedValue(lead)}
+            />
+          ))}
+      </div>
+    </div>
+  );
+}
 
 function DraggableCard({
   lead,
@@ -170,7 +216,7 @@ function DraggableCard({
       style={style}
       {...listeners}
       {...attributes}
-      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing border border-gray-100"
+      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing border border-gray-100 touch-none"
     >
       <div className="text-sm font-medium text-gray-800">
         {lead.name}

@@ -17,29 +17,28 @@ export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchLeads();
   }, []);
 
-const fetchLeads = async () => {
-  setLoading(true);
+  const fetchLeads = async () => {
+    setLoading(true);
 
-  const { data, error } = await supabase
-    .from("leads")
-    .select("*")
-    .eq("archived", false) // ✅ FIX: exclude archived
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("archived", false) // FIX
+      .order("created_at", { ascending: false });
 
-  if (!error && data) {
-    setLeads(data);
-    setFilteredLeads(data);
-  }
+    if (!error && data) {
+      setLeads(data);
+      setFilteredLeads(data);
+    }
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   const handleSearch = (query: string) => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -68,7 +67,6 @@ const fetchLeads = async () => {
     setCurrentPage(1);
   };
 
-  // Stats
   const now = new Date();
 
   const totalLeads = leads.length;
@@ -89,7 +87,6 @@ const fetchLeads = async () => {
     return date >= startOfWeek;
   }).length;
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
 
   const paginatedLeads = filteredLeads.slice(
@@ -97,48 +94,33 @@ const fetchLeads = async () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 p-6 md:p-10">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 text-gray-800 p-4 md:p-10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold">
+        <h1 className="text-xl md:text-3xl font-semibold">
           Decacorn Admin Dashboard
         </h1>
-
-        {/* <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition"
-        >
-          Logout
-        </button> */}
       </div>
 
       {loading ? (
         <div>Loading leads...</div>
       ) : (
         <>
-          {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <StatsCard title="Total Leads" value={totalLeads} />
             <StatsCard title="This Month" value={monthLeads} />
             <StatsCard title="This Week" value={weekLeads} />
           </div>
 
-          {/* Controls */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <SearchBar onSearch={handleSearch} />
             <ExportButtons data={filteredLeads} />
           </div>
 
-          {/* Table */}
-          <LeadsTable leads={paginatedLeads} />
+          <div className="overflow-x-auto">
+            <LeadsTable leads={paginatedLeads} />
+          </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-3 mt-6 flex-wrap">
               <button

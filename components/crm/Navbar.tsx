@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 
-export default function Navbar() {
+interface Props {
+  onMenuClick?: () => void;
+}
+
+export default function Navbar({ onMenuClick }: Props) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -11,15 +15,28 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <div className="text-lg font-semibold">
-        Lead Management System
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shadow-sm">
+      
+      {/* Left Section */}
+      <div className="flex items-center gap-4">
+        {/* Mobile Hamburger */}
+        <button
+          onClick={onMenuClick}
+          className="md:hidden text-xl"
+        >
+          ☰
+        </button>
+
+        <div className="text-base md:text-lg font-semibold">
+          Lead Management System
+        </div>
       </div>
 
+      {/* Right Section */}
       <div className="flex items-center gap-4">
         <button
           onClick={handleLogout}
-          className="px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          className="px-3 md:px-4 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition"
         >
           Logout
         </button>

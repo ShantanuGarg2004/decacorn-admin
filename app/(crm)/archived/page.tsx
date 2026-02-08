@@ -63,8 +63,8 @@ export default function ArchivedPage() {
   };
 
   return (
-    <div className="p-8 bg-[#f5f7fa] min-h-screen">
-      <h1 className="text-2xl font-semibold mb-6">
+    <div className="p-4 md:p-8 bg-[#f5f7fa] min-h-screen">
+      <h1 className="text-xl md:text-2xl font-semibold mb-6">
         Archived Leads
       </h1>
 
@@ -81,7 +81,7 @@ export default function ArchivedPage() {
           {leads.map((lead) => (
             <div
               key={lead.id}
-              className="flex justify-between items-center border-b pb-3"
+              className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 border-b pb-3"
             >
               <div>
                 <div className="font-medium">
